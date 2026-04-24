@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # 4. PYTHON DEPENDENCIES: Added 'gunicorn' to the orchestration layer
-RUN pip install --no-cache-dir "markitdown[all]" fastapi uvicorn python-multipart gunicorn
+RUN pip install --no-cache-dir "markitdown[all]" fastapi uvicorn python-multipart gunicorn pytest httpx
 
 # 5. LOCAL OVERWRITES
 COPY . /app

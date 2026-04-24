@@ -202,11 +202,54 @@ result = md.convert("example.jpg")
 print(result.text_content)
 ```
 
-### Docker
+### Web Service Wrapper
 
-```sh
-docker build -t markitdown:latest .
-docker run --rm -i markitdown:latest < ~/your-file.pdf > output.md
+MarkItDown now includes a web service wrapper that exposes the core functionality via a REST API. The service supports file conversion through a `/convert` endpoint that accepts file uploads and returns Markdown content.
+
+To run the service:
+
+```bash
+uvicorn app:app --host 0.0.0.0 --port 8000
+```
+
+The service supports the following file types:
+
+- PDF
+- PowerPoint (.pptx)
+- Word (.docx)
+- Excel (.xlsx, .xls)
+- Images (.jpg, .jpeg, .png)
+- Audio (.wav, .mp3, .m4a)
+- HTML (.html, .htm)
+- Text-based formats (.csv, .json, .xml, .txt, .md)
+- ZIP (.zip)
+- EPubs (.epub)
+- Outlook messages (.msg)
+- Jupyter notebooks (.ipynb)
+
+Example usage:
+
+```bash
+curl -X POST "http://localhost:8000/convert" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@/path/to/your/file.pdf" \
+  -o output.md
+```
+
+### Environment Variables
+
+The service supports the following environment variables for configuration:
+
+- `HARD_MAX_MB`: Maximum file size in MB (default: 150)
+- `AZURE_API_KEY`: Azure API key for Document Intelligence (optional)
+- `EXIFTOOL_PATH`: Path to exiftool executable (optional)
+
+### Tests
+
+Tests have been added to verify the functionality of the web service wrapper and file conversion. To run the tests:
+
+```bash
+pytest test_app.py
 ```
 
 ## Contributing

@@ -16,6 +16,13 @@ md = MarkItDown()
 # HARD INFRASTRUCTURE LIMIT: The client cannot override this.
 HARD_MAX_MB = int(os.getenv("HARD_MAX_MB", 150))
 
+SUPPORTED_EXTENSIONS = {
+    ".pdf", ".pptx", ".docx", ".xlsx", ".xls",
+    ".jpg", ".jpeg", ".png", ".wav", ".mp3", ".m4a",
+    ".html", ".htm", ".csv", ".json", ".xml", ".txt", ".md",
+    ".zip", ".epub", ".msg", ".ipynb"
+}
+
 def get_safe_extension(filename: str) -> str:
     if not filename or "." not in filename:
         return ""
@@ -25,8 +32,8 @@ def get_safe_extension(filename: str) -> str:
 @app.post("/convert")
 def convert_file(
     file: UploadFile = File(...),
-    # Allow client to request a limit, defaulting to 100MB
-    max_size_mb: int = Query(100, description="Max file size in MB")
+    # Allow client to request a limit, defaulting to HARD_MAX_MB
+    max_size_mb: int = Query(HARD_MAX_MB, description="Max file size in MB")
 ):
     original_name = file.filename if file.filename else "unnamed_upload"
     safe_log_name = original_name.replace("\n", "").replace("\r", "")
@@ -40,6 +47,10 @@ def convert_file(
     logger.info(f"ENFORCING LIMIT: {effective_max_mb}MB for request {safe_log_name}")
 
     safe_ext = get_safe_extension(original_name)
+    if safe_ext not in SUPPORTED_EXTENSIONS:
+        logger.warning(f"REJECTED: {safe_log_name} - Unsupported extension '{safe_ext}'")
+        raise HTTPException(status_code=400, detail=f"Unsupported file extension: '{safe_ext}'")
+
     temp_path = Path(f"/tmp/{uuid.uuid4().hex}{safe_ext}")
     
     file_size = 0
